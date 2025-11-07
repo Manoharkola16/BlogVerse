@@ -1,3 +1,4 @@
+
 import React from 'react'
 
 const Preview = () => {
@@ -5,6 +6,6 @@ const Preview = () => {
     <div>Preview</div>
   )
 }
-export default Preview
 
+export default Preview
 
