@@ -38,8 +38,8 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[url('/image.jpg')] bg-cover flex items-center px-100">
-      <div className="rounded-lg w-full px-50 py-20 flex justify-end flex-col">
+    <div className="min-h-screen bg-[url('/image.jpg')] bg-cover flex items-center px-100 ">
+      <div className="rounded-lg w-full px-50 py-20 flex justify-end flex-col ">
         <h2 className="text-2xl font-semibold text-center mb-8">
           LOGIN TO YOUR ACCOUNT
         </h2>
@@ -96,3 +96,10 @@ function Login() {
 }
 
 export default Login;
+
+
+
+
+
+
+

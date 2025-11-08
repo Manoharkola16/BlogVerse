@@ -17,7 +17,8 @@ let Routes= createBrowserRouter([
    {
    path:"/home",
    element:<Home/>
-    }
+    },
+   
     
 
 ])
