@@ -141,8 +141,8 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[url('/img.jpg')] bg-cover flex items-center justify-end px-100 pr-50 ">
-      <div className="  w-full max-w-md p-10 transition-transform duration-300 hover:scale-105 border-2  rounded-2xl">
+    <div className="min-h-screen bg-[url('/img.jpg')] bg-cover flex items-center justify-end px-100 pr-50 bg-black/50 bg-blend-multiply">
+      <div className="  w-full max-w-md p-10 transition-transform duration-300 hover:scale-105 border-2 bg-black shadow-2xl shadow-white rounded-2xl">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
           Login to Your Account
         </h2>
