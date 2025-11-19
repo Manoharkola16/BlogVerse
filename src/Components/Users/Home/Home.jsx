@@ -1,334 +1,650 @@
 
+
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  FiSearch,
   FiHome,
-  FiPlus,
-  FiUserPlus,
+  FiSearch,
   FiBell,
+  FiEdit3,
+  FiUserPlus,
   FiSettings,
-  FiLogOut,
+  FiHeart,
+  FiMessageCircle,
+  FiBookmark,
+  FiUser,
+  FiX,
 } from "react-icons/fi";
 
-export default function Home() {
-  const [active, setActive] = useState("Home");
-  const [showNewPost, setShowNewPost] = useState(false);
-  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
-  const [posts, setPosts] = useState([
-    { id: 1, author: "Asha", title: "Hello", content: "First content sample" },
-    { id: 2, author: "Ravi", title: "Update", content: "Second content sample" },
-    { id: 3, author: "Megha", title: "Good Day", content: "It's a sunny day!" },
-    { id: 4, author: "Rohan", title: "Travel", content: "Exploring new places!" },
-    { id: 5, author: "Kiran", title: "Fitness", content: "Morning workout done!" },
-  ]);
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "Asha liked your post", read: false },
-    { id: 2, text: "Ravi started following you", read: false },
-    { id: 3, text: "Megha shared your post", read: false },
-    { id: 4, text: "Kiran commented on your post", read: false },
-  ]);
-  const [user, setUser] = useState({ name: "username" });
+const initialPosts = [
+  {
+    id: 1,
+    author: "Alex Johnson",
+    content:
+      "Exploring how small daily writing habits can transform your creativity over time.",
+    likes: 12,
+    comments: 4,
+    saves: 3,
+  },
+  {
+    id: 2,
+    author: "Priya Sharma",
+    content: "5 ways to make your blog more engaging for first-time visitors.",
+    likes: 18,
+    comments: 6,
+    saves: 5,
+  },
+  {
+    id: 3,
+    author: "Michael Lee",
+    content:
+      "How I turned weekend journaling into a full-time blog in just one year.",
+    likes: 25,
+    comments: 10,
+    saves: 9,
+  },
+  {
+    id: 4,
+    author: "Sara Wilson",
+    content: "Design tips to make your blog posts more readable and visually pleasing.",
+    likes: 9,
+    comments: 2,
+    saves: 4,
+  },
+  {
+    id: 5,
+    author: "David Kim",
+    content: "Why storytelling is the most powerful tool for building a loyal audience.",
+    likes: 31,
+    comments: 12,
+    saves: 15,
+  },
+  {
+    id: 6,
+    author: "Emily Brown",
+    content:
+      "Balancing authenticity and privacy while sharing your life online.",
+    likes: 7,
+    comments: 3,
+    saves: 2,
+  },
+];
 
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+const initialNotifications = [
+  "Priya commented on your post.",
+  "You have 3 new followers.",
+  "Your blog 'Daily Writing Habits' reached 1k views!",
+  "Alex liked your recent blog.",
+  "New recommendation: 'Top 10 productivity hacks'.",
+  "Your profile was viewed 12 times today.",
+  "Reminder: Finish your draft 'Travel Diaries'.",
+  "Weekly digest is ready.",
+  "New message from Sara.",
+  "System: maintenance tonight.",
+  "Tip: Add tags to increase discoverability.",
+];
 
-  function handleSidebarClick(name) {
-    setActive(name);
+const initialRecentSearches = [
+  "Productivity blogs",
+  "Travel stories",
+  "Tech trends 2025",
+  "Minimalist lifestyle",
+  "Personal finance tips",
+  "Photography blogs",
+  "Health & wellness",
+];
 
-    if (name === "New Post+") {
-      setShowNewPost(true);
-      setShowNotificationsModal(false);
-    } else if (name === "Notification") {
-      setShowNotificationsModal(true);
-      setShowNewPost(false);
-    } else {
-      setShowNewPost(false);
-      setShowNotificationsModal(false);
-    }
-  }
+function NavButton({ icon: Icon, label, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-3 px-3 py-2 rounded-lg w-full text-sm font-medium transition
+        ${
+          active
+            ? "bg-blue-50 text-blue-600"
+            : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+        }`}
+    >
+      <Icon className="text-lg" />
+      <span>{label}</span>
+    </button>
+  );
+}
 
-  function submitPost(e) {
-    e.preventDefault();
-    if (!content.trim()) return alert("Please add content.");
-    const newPost = {
-      id: Date.now(),
-      author: user.name,
-      title: title || "Untitled",
-      content: content,
-    };
-    setPosts((p) => [newPost, ...p]);
-    setNotifications((n) => [
-      { id: Date.now(), text: `${user.name} created a post`, read: false },
-      ...n,
-    ]);
-    setTitle("");
-    setContent("");
-    setShowNewPost(false);
-    setActive("Home");
-  }
+function PostCard({ post }) {
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.likes);
+  const [commentCount, setCommentCount] = useState(post.comments);
+  const [saveCount, setSaveCount] = useState(post.saves);
 
-  function handleLogout() {
-    if (confirm("Are you sure you want to logout?")) {
-      setUser(null);
-      setActive("");
-      alert("Logged out (demo).");
-    }
-  }
+  const handleLike = () => {
+    const newLiked = !liked;
+    setLiked(newLiked);
+    setLikeCount((c) => (newLiked ? c + 1 : Math.max(0, c - 1)));
+  };
 
-  function markAllRead() {
-    setNotifications((n) => n.map((item) => ({ ...item, read: true })));
-  }
+  const handleSave = () => {
+    const newSaved = !saved;
+    setSaved(newSaved);
+    setSaveCount((c) => (newSaved ? c + 1 : Math.max(0, c - 1)));
+  };
 
-  function toggleNotificationsFromHeader() {
-    setShowNotificationsModal((s) => !s);
-    setActive("Notification");
-    setShowNewPost(false);
-  }
+  const handleComment = () => {
+    setCommentCount((c) => c + 1);
+  };
 
   return (
-    <div className="min-h-screen bg-white flex text-gray-900">
-      {/* Sidebar */}
-      <aside className="w-72 border-r px-6 py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-full bg-purple-700 flex items-center justify-center text-white font-bold">
-            B
-          </div>
-          <h1 className="text-2xl font-semibold">Blogger</h1>
+    <div className="bg-gray-100 rounded-xl p-5 flex flex-col gap-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="bg-purple-100 rounded-full p-3 flex items-center justify-center">
+          <FiUser className="text-2xl text-purple-600" />
         </div>
-
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-36 h-36 rounded-full bg-purple-100 flex items-center justify-center">
-            <div className="text-6xl text-purple-500">👤</div>
-          </div>
-          <div className="mt-3 text-lg">{user ? user.name : "Guest"}</div>
-          <button
-            className="mt-3 bg-purple-600 text-white px-4 py-2 rounded-md"
-            onClick={() => alert("Go to profile (demo)")}
-          >
-            MyProfile
-          </button>
+        <div className="flex flex-col">
+          <span className="font-semibold text-gray-900">{post.author}</span>
+          <span className="text-xs text-gray-500">From your network</span>
         </div>
+      </div>
 
-        <nav className="space-y-4">
-          {[
-            { name: "Home", icon: <FiHome /> },
-            { name: "New Post+", icon: <FiPlus /> },
-            { name: "Add Friends+", icon: <FiUserPlus /> },
-            { name: "Notification", icon: <FiBell /> },
-            { name: "Settings", icon: <FiSettings /> },
-          ].map((item) => {
-            const isActive = active === item.name;
-            return (
-              <button
-                key={item.name}
-                onClick={() => handleSidebarClick(item.name)}
-                className={`flex items-center gap-3 w-full justify-between border rounded px-4 py-3 text-left
-                  ${
-                    isActive
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-900"
-                  }
-                  hover:shadow-sm transition`}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-xl ${
-                      isActive ? "text-white" : "text-gray-600"
-                    }`}
-                  >
-                    {item.icon}
-                  </span>
-                  <span className="text-lg">{item.name}</span>
-                </div>
-              </button>
-            );
-          })}
+      <p className="text-gray-800 text-sm leading-relaxed">{post.content}</p>
 
-          <button
-            onClick={() => {
-              setActive("Logout");
-              handleLogout();
-            }}
-            className={`flex items-center gap-3 w-full justify-between border rounded px-4 py-3 text-left
-              ${
-                active === "Logout"
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-gray-900"
-              }`}
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className={`text-xl ${
-                  active === "Logout" ? "text-white" : "text-gray-600"
-                }`}
-              >
-                <FiLogOut />
-              </span>
-              <span className="text-lg">Logout</span>
-            </div>
-          </button>
-        </nav>
-      </aside>
-
-      {/* Main */}
-      <main className="flex-1 p-8">
-        {/* Header with big full-width search bar up to notification icon */}
-        <header className="flex items-center justify-between mb-6 w-full">
-          <div className="relative flex-1 mr-6">
-            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500" />
-            <input
-              placeholder="Search.."
-              className="w-full border rounded-full py-3 pl-12 pr-4 outline-none text-lg"
-            />
-          </div>
-
-          <button
-            onClick={toggleNotificationsFromHeader}
-            className={`relative p-3 rounded-full ${
-              showNotificationsModal
-                ? "bg-blue-600 text-white"
-                : "bg-transparent text-gray-800"
-            }`}
-            aria-label="Toggle notifications"
-          >
-            <FiBell className="text-2xl" />
-            {notifications.some((n) => !n.read) && (
-              <span className="absolute -top-1 -right-1 text-xs bg-red-500 text-white rounded-full px-1">
-                !
-              </span>
-            )}
-          </button>
-        </header>
-
-        <h2 className="text-3xl font-bold mb-4">Latest from your network</h2>
-
-        <div className="flex gap-8">
-          <div className="flex-1">
-            <div className="space-y-6">
-              {posts.map((p) => (
-                <article key={p.id} className="border-b pb-6">
-                  <div className="flex items-start gap-4 mb-2">
-                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                      👤
-                    </div>
-                    <div>
-                      <div className="font-semibold">{p.author}</div>
-                      <div className="text-2xl font-extrabold mt-2">
-                        {p.title}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="pl-16 text-lg">{p.content}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* New Post Modal */}
-      {showNewPost && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-2/3 max-w-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold">Create New Post</h3>
-              <button
-                onClick={() => setShowNewPost(false)}
-                className="text-gray-500"
-              >
-                Close
-              </button>
-            </div>
-
-            <form onSubmit={submitPost} className="space-y-4">
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Title (optional)"
-                className="w-full border rounded px-3 py-2 outline-none"
-              />
-              <textarea
-                required
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write something..."
-                className="w-full border rounded px-3 py-2 h-36 outline-none"
-              />
-              <div className="flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowNewPost(false)}
-                  className="px-4 py-2 border rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-purple-600 text-white rounded"
-                >
-                  Publish
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Notifications Modal */}
-      {showNotificationsModal && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Notifications"
+      {/* ACTIONS */}
+      <div className="flex items-center justify-end gap-6 pt-2 border-t border-gray-200">
+        <button
+          onClick={handleLike}
+          className="flex items-center gap-1 text-xs font-medium hover:opacity-80 transition"
         >
-          <div className="bg-white rounded-lg w-96 max-w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold">Notifications</h3>
-              <div className="flex items-center gap-2">
-                <button onClick={markAllRead} className="text-sm underline">
-                  Mark all read
-                </button>
-                <button
-                  onClick={() => {
-                    setShowNotificationsModal(false);
-                    setActive("Home");
-                  }}
-                  className="text-gray-500"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+          <FiHeart
+            className={`text-lg ${liked ? "text-red-500 fill-red-500" : "text-gray-500"}`}
+          />
+          <span className={liked ? "text-red-500" : "text-gray-600"}>Like</span>
+          <span className="text-[11px] text-gray-500">• {likeCount}</span>
+        </button>
 
-            <div className="max-h-64 overflow-y-auto space-y-3">
-              {notifications.length === 0 && (
-                <div className="text-sm text-gray-500">No notifications</div>
-              )}
-              {notifications.map((n) => (
-                <div
-                  key={n.id}
-                  className={`p-3 rounded flex items-start gap-3 ${
-                    n.read ? "bg-gray-100" : "bg-white shadow-sm"
-                  }`}
-                >
-                  <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center">
-                    🔔
-                  </div>
-                  <div>
-                    <div className="text-sm">{n.text}</div>
-                    <div className="text-xs text-gray-400">
-                      {n.read ? "Read" : "New"}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+        <button
+          onClick={handleComment}
+          className="flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-purple-600 hover:opacity-80 transition"
+        >
+          <FiMessageCircle className="text-lg" />
+          <span>Comment</span>
+          <span className="text-[11px] text-gray-500">• {commentCount}</span>
+        </button>
+
+        <button
+          onClick={handleSave}
+          className="flex items-center gap-1 text-xs font-medium hover:opacity-80 transition"
+        >
+          <FiBookmark
+            className={`text-lg ${saved ? "text-purple-600 fill-purple-600" : "text-gray-500"}`}
+          />
+          <span className={saved ? "text-purple-600" : "text-gray-600"}>Save</span>
+          <span className="text-[11px] text-gray-500">• {saveCount}</span>
+        </button>
+      </div>
     </div>
   );
 }
+
+/**
+ * SlidePanel:
+ * - top/bottom inset so panel appears shorter than full height
+ * - small semicircles are two small circle divs overlapping the panel's right edge
+ * - Search: red Clear All next to Recent searches
+ * - Notifications: Clear All in header (red) that clears all notifications
+ */
+function SlidePanel({
+  type,
+  onClose,
+  notificationsState,
+  setNotificationsState,
+  recentSearchesState,
+  setRecentSearchesState,
+}) {
+  const isOpen = type !== null;
+  const [searchInput, setSearchInput] = useState("");
+
+  const clearRecentSearches = () => {
+    setRecentSearchesState([]);
+    setSearchInput("");
+  };
+
+  const clearNotifications = () => {
+    setNotificationsState([]);
+  };
+
+  return (
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Panel container */}
+      <div
+        className={`fixed left-0 top-16 bottom-16 z-50 w-80 bg-white shadow-lg transform transition-transform duration-300 overflow-hidden
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          borderTopRightRadius: "0.75rem",
+          borderBottomRightRadius: "0.75rem",
+        }}
+      >
+        {/* small semicircle top-right */}
+        <div
+          aria-hidden="true"
+          className="absolute right-[-16px] top-6 w-8 h-8 bg-white rounded-full shadow-sm"
+          style={{ pointerEvents: "none" }}
+        />
+
+        {/* small semicircle bottom-right */}
+        <div
+          aria-hidden="true"
+          className="absolute right-[-16px] bottom-6 w-8 h-8 bg-white rounded-full shadow-sm"
+          style={{ pointerEvents: "none" }}
+        />
+
+        {/* header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900">
+              {type === "search" ? "Search" : "Notifications"}
+            </h3>
+            {type === "notifications" && (
+              <span className="text-xs text-gray-500">
+                {notificationsState.length} items
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* If notifications panel, show red Clear All in header */}
+            {type === "notifications" && (
+              <button
+                onClick={clearNotifications}
+                className="text-xs px-2 py-1 rounded-md border border-red-100 text-red-600 bg-red-50 hover:bg-red-100 transition"
+                title="Clear all notifications"
+              >
+                Clear All
+              </button>
+            )}
+
+            <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100">
+              <FiX />
+            </button>
+          </div>
+        </div>
+
+        {/* content area (scrollable) */}
+        <div className="p-4 overflow-y-auto flex-1 min-h-0 space-y-4">
+          {/* Search Panel */}
+          {type === "search" && (
+            <>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Search blogs
+                </label>
+
+                <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2">
+                  <FiSearch className="text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Search BlogVerse..."
+                    className="w-full text-sm outline-none"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                  {searchInput && (
+                    <button
+                      onClick={() => setSearchInput("")}
+                      className="text-xs text-gray-500 px-2 py-1 rounded hover:bg-gray-100"
+                      title="Clear input"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-semibold text-gray-700">
+                    Recent searches
+                  </h4>
+
+                  {/* Clear All placed beside Recent searches (red) */}
+                  <button
+                    onClick={clearRecentSearches}
+                    className="text-xs px-2 py-1 rounded-md border border-red-100 text-red-600 bg-red-50 hover:bg-red-100 transition"
+                  >
+                    Clear All
+                  </button>
+                </div>
+
+                {recentSearchesState.length === 0 ? (
+                  <div className="text-sm text-gray-500">No recent searches.</div>
+                ) : (
+                  <ul className="space-y-2 text-sm text-gray-700">
+                    {recentSearchesState.map((item) => (
+                      <li
+                        key={item}
+                        className="px-3 py-2 rounded-md bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Notifications Panel */}
+          {type === "notifications" && (
+            <>
+              <h4 className="text-xs font-semibold text-gray-700 mb-2">Notifications</h4>
+
+              {notificationsState.length === 0 ? (
+                <div className="text-sm text-gray-500">No notifications.</div>
+              ) : (
+                <div className="space-y-3 text-sm">
+                  {notificationsState.map((n, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-lg bg-gray-50 border border-gray-100"
+                    >
+                      {n}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CreateBlogModal({ open, onClose, onPost }) {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+
+  if (!open) return null;
+
+  const handlePost = () => {
+    if (!title.trim() || !content.trim()) return;
+
+    onPost(title, content);
+    setTitle("");
+    setContent("");
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
+
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-xl w-full max-w-lg shadow-xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Create Blog</h3>
+            <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100">
+              <FiX />
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
+              <input
+                type="text"
+                placeholder="Enter your blog title"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Content</label>
+              <textarea
+                rows="5"
+                placeholder="Share your story..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none resize-none focus:ring-2 focus:ring-blue-500"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handlePost}
+              className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
+            >
+              Post
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default function Home() {
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState(initialPosts);
+  const [activeNav, setActiveNav] = useState("home");
+  const [sidePanel, setSidePanel] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // notification & recent searches state moved to top-level so SlidePanel can update/clear them
+  const [notificationsState, setNotificationsState] = useState(initialNotifications);
+  const [recentSearchesState, setRecentSearchesState] = useState(initialRecentSearches);
+
+  const handleOpenSearch = () => {
+    setSidePanel("search");
+    setActiveNav("search");
+  };
+
+  const handleOpenNotifications = () => {
+    setSidePanel("notifications");
+    setActiveNav("notifications");
+  };
+
+  const handleOpenCreate = () => {
+    setShowCreateModal(true);
+    setActiveNav("create");
+  };
+
+  const handleClosePanels = () => {
+    setSidePanel(null);
+  };
+
+  const handlePostBlog = (title, content) => {
+    const newPost = {
+      id: Date.now(),
+      author: "You",
+      content,
+      likes: 0,
+      comments: 0,
+      saves: 0,
+    };
+
+    setPosts((prev) => [newPost, ...prev]);
+    setShowCreateModal(false);
+    setActiveNav("home");
+  };
+
+  return (
+    <div className="min-h-screen w-full bg-gray-50 text-gray-900">
+      <div className="flex h-screen w-full">
+        {/* SIDEBAR */}
+        <aside className="w-64 bg-white border-r border-gray-200 flex flex-col items-center py-8 gap-8 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-purple-700 text-white flex items-center justify-center text-lg font-bold">
+              B
+            </div>
+            <span className="font-semibold text-lg">BlogVerse</span>
+          </div>
+
+          <div className="flex flex-col items-center gap-3">
+            <img
+              src="/mnt/data/Screenshot 2025-11-19 131334.png"
+              alt="profile"
+              className="w-24 h-24 rounded-full object-cover"
+            />
+
+            <span className="font-medium">UserName</span>
+
+            <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
+              <div className="text-center">
+                <div className="font-semibold text-gray-900">10</div>
+                <div className="text-xs">Posts</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-gray-900">100</div>
+                <div className="text-xs">Following</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-gray-900">1.2k</div>
+                <div className="text-xs">Followers</div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate("/Profilepage")}
+              className="px-5 py-1.5 rounded-full bg-purple-700 text-white text-sm shadow hover:bg-purple-800 transition"
+            >
+              MyProfile
+            </button>
+          </div>
+
+          {/* NAV BUTTONS */}
+          <nav className="w-full px-8 flex flex-col gap-3">
+            <NavButton
+              icon={FiHome}
+              label="Home"
+              active={activeNav === "home"}
+              onClick={() => {
+                setActiveNav("home");
+                setSidePanel(null);
+                setShowCreateModal(false);
+              }}
+            />
+
+            <NavButton
+              icon={FiSearch}
+              label="Search"
+              active={activeNav === "search"}
+              onClick={handleOpenSearch}
+            />
+
+            <NavButton
+              icon={FiBell}
+              label="Notifications"
+              active={activeNav === "notifications"}
+              onClick={handleOpenNotifications}
+            />
+
+            <NavButton
+              icon={FiEdit3}
+              label="Create Blog"
+              active={activeNav === "create"}
+              onClick={handleOpenCreate}
+            />
+
+            <NavButton
+              icon={FiUserPlus}
+              label="Add Friends"
+              active={activeNav === "friends"}
+              onClick={() => {
+                setActiveNav("friends");
+                setSidePanel(null);
+                setShowCreateModal(false);
+              }}
+            />
+
+            <NavButton
+              icon={FiSettings}
+              label="Settings"
+              active={activeNav === "settings"}
+              onClick={() => {
+                setActiveNav("settings");
+                setSidePanel(null);
+                setShowCreateModal(false);
+              }}
+            />
+          </nav>
+        </aside>
+
+        {/* RIGHT SIDE (SCROLLABLE) */}
+        <main className="flex-1 h-screen overflow-y-auto p-8 flex flex-col gap-6">
+          {/* HERO SECTION */}
+          <section className="flex gap-6 items-center border-b border-gray-200 pb-6">
+            <div className="flex-1 space-y-3">
+              <h1 className="text-5xl font-bold leading-tight">
+                Explore Stories,<br /> Ideas & Inspiration
+              </h1>
+
+              <p className="text-xl text-gray-600 max-w-md">
+                Discover trending blogs from creators around the globe.
+              </p>
+            </div>
+
+            <div className="flex-1 flex justify-center">
+              <img
+                src="/public/home page image.png"
+                alt="hero"
+                className="w-[650px] h-[300px] pr-[80px]"
+              />
+            </div>
+          </section>
+
+          {/* POSTS */}
+          <section className="flex flex-col gap-4">
+            <h2 className="text-xl font-semibold">Latest from your network</h2>
+
+            <div className="flex flex-col gap-4">
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
+          </section>
+        </main>
+      </div>
+
+      {/* PANELS & MODALS */}
+      <SlidePanel
+        type={sidePanel}
+        onClose={handleClosePanels}
+        notificationsState={notificationsState}
+        setNotificationsState={setNotificationsState}
+        recentSearchesState={recentSearchesState}
+        setRecentSearchesState={setRecentSearchesState}
+      />
+      <CreateBlogModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onPost={handlePostBlog}
+      />
+    </div>
+  );
+}
+
+
+
+
+
 
 
