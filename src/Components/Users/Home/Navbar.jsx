@@ -20,37 +20,37 @@ export default function Navbar() {
 
   const { user } = useSelector((state) => state.user);
 
-  // Detect active page from URL
+  // Detect active page
   useEffect(() => {
     const p = location.pathname || "/";
     if (p.startsWith("/home")) setActive("Home");
     else if (p.startsWith("/addfriends")) setActive("Add Friends");
     else if (p.startsWith("/settings")) setActive("Settings");
     else if (p.startsWith("/profile")) setActive("Profile");
-    else setActive("Home");
   }, [location.pathname]);
 
-  // Menu buttons
   const menuItems = [
-    { label: "Home", icon: <FiHome size={22} />, route: "/home" },
-    { label: "Search", icon: <FiSearch size={22} />, action: () => setShowSearch(true) },
-    { label: "Notifications", icon: <FiBell size={22} />, action: () => setShowNotifications(true) },
-    { label: "Create Blog", icon: <FiEdit3 size={22} /> },
-    { label: "Add Friends", icon: <FiUserPlus size={22} />, route: "/addfriends" },
-    { label: "Settings", icon: <FiSettings size={22} />, route: "/settings" },
+    { label: "Home", icon: <FiHome size={24} />, route: "/home" },
+    { label: "Search", icon: <FiSearch size={24} />, action: () => setShowSearch(true) },
+    {
+      label: "Notifications",
+      icon: <FiBell size={24} />,
+      action: () => setShowNotifications(true),
+    },
+    { label: "Add Friends", icon: <FiUserPlus size={24} />, route: "/addfriends" },
+    { label: "Settings", icon: <FiSettings size={24} />, route: "/settings" },
   ];
 
   const handleClick = (item) => {
     setActive(item.label);
-
     if (item.action) item.action();
     if (item.route) navigate(item.route);
   };
 
   return (
     <>
-      {/* LEFT SIDEBAR */}
-      <div className="w-64 h-screen border-r px-6 py-8 flex flex-col space-y-8 bg-white">
+      {/* DESKTOP SIDEBAR */}
+      <div className="hidden md:flex w-64 h-screen border-r px-6 py-8 flex-col space-y-8 bg-white">
 
         {/* Logo */}
         <div className="flex items-center gap-3">
@@ -60,7 +60,7 @@ export default function Navbar() {
           <h1 className="text-2xl font-bold">BlogVerse</h1>
         </div>
 
-        {/* Profile Section */}
+        {/* Profile */}
         <div className="text-center">
           <div className="mx-auto w-28 h-28 rounded-full bg-purple-100 flex items-center justify-center">
             <img
@@ -91,7 +91,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* NAV BUTTONS */}
+        {/* Navigation buttons */}
         <div className="space-y-3 mt-5">
           {menuItems.map((item) => (
             <button
@@ -111,7 +111,24 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* SEARCH SLIDE */}
+      {/* MOBILE BOTTOM NAVBAR */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-lg border-t py-2 flex justify-around z-50">
+
+        {menuItems.map((item) => (
+          <button
+            key={item.label}
+            onClick={() => handleClick(item)}
+            className={`flex flex-col items-center text-xs ${
+              active === item.label ? "text-purple-600" : "text-gray-600"
+            }`}
+          >
+            {item.icon}
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {/* SEARCH SLIDE PANEL */}
       <div
         className={`fixed top-0 left-0 h-full w-72 bg-white shadow-xl transform 
         transition-transform duration-300 p-5 z-50
@@ -133,7 +150,7 @@ export default function Navbar() {
         />
       </div>
 
-      {/* NOTIFICATION SLIDE */}
+      {/* NOTIFICATION SLIDE PANEL */}
       <div
         className={`fixed top-0 left-0 h-full w-72 bg-white shadow-xl transform 
         transition-transform duration-300 p-5 z-50
