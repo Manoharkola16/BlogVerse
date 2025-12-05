@@ -29,7 +29,7 @@ export default function Navbar() {
 
   // Correct user access
   const user = useSelector((state) => state.auth.user);
-  console.log(user)
+  // console.log(user)
 
   useEffect(() => {
     const p = location.pathname || "/";

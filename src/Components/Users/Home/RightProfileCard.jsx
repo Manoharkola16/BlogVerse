@@ -24,7 +24,7 @@ export default function RightProfileCard({ postsCount }) {
               <img
                 src={
                   user?.user?.profilePhoto
-                    ? `data:image/jpeg;base64,${user.user?.profilePhoto}`
+                    ? `data:image/jpeg;base64,${user?.user?.profilePhoto}`
                     : "/default-avatar.png"
                 }
                 className="w-24 h-24 rounded-full object-cover shadow mb-3"

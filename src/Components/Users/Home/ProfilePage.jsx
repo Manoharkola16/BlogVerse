@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Navbar from "./Navbar";
@@ -19,24 +18,42 @@ export default function ProfilePage() {
     dispatch(getAllBlogs());
   }, [dispatch]);
 
+  // User post count
   const userPostsCount =
     blogs?.filter((b) => b?.author?._id === user?._id).length || 0;
 
+  // Like
   const handleLike = (id) => dispatch(toggleLike(id));
 
+  // Submit comment
   const handleSubmitComment = (blogId) => {
     if (!commentText.trim()) return;
     dispatch(addComment({ articleId: blogId, comment: commentText }));
     setCommentText("");
   };
 
+  // Toggle comment box
   const toggleComments = (id) =>
     setOpenPost((prev) => (prev === id ? null : id));
 
-  const getAuthorName = (blog) => blog?.author?.username || user?.username;
+  // Get author name safely
+  const getAuthorName = (blog) =>
+    user?.user?.username || user?.username || "Unknown User";
 
-  const getAvatarLetter = (blog) =>
-    (getAuthorName(blog)?.[0] || "U").toUpperCase();
+  // Get avatar with profile photo
+  const getAvatar = (blog) => (
+    <img
+      src={
+        user?.user?.profilePhoto
+          ? `data:image/jpeg;base64,${user.user.profilePhoto}`
+          : user?.profilePhoto
+          ? `data:image/jpeg;base64,${user.profilePhoto}`
+          : "/default-avatar.png"
+      }
+      alt="photo"
+      className="w-12 h-12 rounded-full object-cover shadow"
+    />
+  );
 
   return (
     <div className="flex">
@@ -54,77 +71,83 @@ export default function ProfilePage() {
             return (
               <div
                 key={blog._id}
-                className="bg-white rounded-2xl shadow-md p-6 border"
+                className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition p-6 border border-gray-200"
               >
-
-                {/* USER */}
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center font-bold">
-                    {getAvatarLetter(blog)}
-                  </div>
+                {/* USER SECTION */}
+                <div className="flex items-center gap-3 mb-4">
+                  {getAvatar(blog)}
                   <div>
-                    <p className="font-semibold">{getAuthorName(blog)}</p>
-                    <p className="text-xs text-gray-500">Author</p>
+                    <p className="font-semibold text-lg">{getAuthorName(blog)}</p>
+                    {/* <p className="text-xs text-gray-400">Author</p> */}
+                    <p className="text-xs text-gray-400">
+                    {user?.user?.email || user?.email}
+                    </p>
+
                   </div>
                 </div>
 
-                <h3 className="text-xl font-semibold">{blog.title}</h3>
+                {/* TITLE */}
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {blog.title}
+                </h3>
 
-                <p className="text-gray-600 mt-2 whitespace-pre-wrap">
+                {/* CONTENT */}
+                <p className="text-gray-600 mb-4 leading-relaxed whitespace-pre-wrap">
                   {blog.content}
                 </p>
 
-                {/* LIKE / COMMENT */}
-                <div className="flex items-center gap-6 mt-4">
+                {/* LIKE / COMMENT BUTTONS */}
+                <div className="flex items-center gap-8 mt-3 border-t pt-4">
                   <button
                     onClick={() => handleLike(blog._id)}
-                    className={`flex items-center gap-2 ${
-                      isLiked ? "text-red-500" : "text-gray-600"
+                    className={`flex items-center gap-2 text-lg transition ${
+                      isLiked ? "text-red-500" : "text-gray-600 hover:text-red-500"
                     }`}
                   >
-                    <FiHeart
-                      className={`text-lg ${
-                        isLiked ? "fill-red-500 text-red-500" : ""
-                      }`}
-                    />
-                    {blog.likes?.length || 0}
+                    <FiHeart className={`${isLiked ? "fill-red-500 text-red-500" : ""}`} />
+                    <span className="text-sm">{blog.likes?.length || 0}</span>
                   </button>
 
                   <button
                     onClick={() => toggleComments(blog._id)}
-                    className="flex items-center gap-2 hover:text-blue-600"
+                    className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition text-lg"
                   >
-                    <FiMessageCircle className="text-lg" />
-                    {blog.comments?.length || 0}
+                    <FiMessageCircle />
+                    <span className="text-sm">{blog.comments?.length || 0}</span>
                   </button>
                 </div>
 
-                {/* COMMENTS */}
+                {/* COMMENTS SECTION */}
                 {openPost === blog._id && (
-                  <div className="mt-4 space-y-4">
-                    <div className="flex gap-2">
+                  <div className="mt-5 space-y-4 bg-gray-50 p-4 rounded-xl border">
+                    {/* INPUT BOX */}
+                    <div className="flex gap-3">
                       <input
-                        className="flex-1 border rounded-xl px-3 py-2"
+                        className="flex-1 border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
                         placeholder="Write a comment..."
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}
                       />
                       <button
                         onClick={() => handleSubmitComment(blog._id)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-xl"
+                        className="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
                       >
                         Post
                       </button>
                     </div>
 
-                    <div className="space-y-2">
+                    {/* COMMENTS LIST */}
+                    <div className="space-y-3">
                       {blog.comments?.length ? (
                         blog.comments.map((c, i) => (
                           <div
                             key={i}
-                            className="bg-gray-100 p-2 rounded-lg border text-sm"
+                            className="bg-white p-3 rounded-lg border shadow-sm text-sm"
                           >
-                            <b>{c.username || "User"}:</b> {c.text}
+                            <b className="text-gray-800">
+                              {c.username || user?.user?.username}:
+                            </b>{" "}
+                            <span className="text-gray-700">{c.text}</span>
                           </div>
                         ))
                       ) : (
@@ -141,6 +164,7 @@ export default function ProfilePage() {
         </div>
       </main>
 
+      {/* RIGHT PROFILE SIDEBAR */}
       <RightProfileCard postsCount={userPostsCount} />
     </div>
   );
